@@ -97,9 +97,11 @@ class openvoxdb::database::postgresql (
 ) inherits openvoxdb::params {
   if $manage_server {
     class { 'postgresql::globals':
+      manage_dnf_module   => false, # disable DNF module on EL8, EL9 and EL10
       manage_package_repo => $manage_package_repo,
       version             => $postgres_version,
     }
+
     # get the pg server up and running
     class { 'postgresql::server':
       ip_mask_allow_all_users => '0.0.0.0/0',

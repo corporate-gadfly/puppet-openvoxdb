@@ -19,10 +19,19 @@ describe 'openvoxdb', type: :class do
 
       describe 'without managed postgresql' do
         let :pre_condition do
-          <<-HEREDOC
-          class { 'postgresql::server':
-          }
-          HEREDOC
+          if facts.dig(:os, 'family') == 'RedHat' && facts.dig(:os, 'release', 'major') == '10'
+            <<-HEREDOC
+            class { 'postgresql::globals':
+              version => '16',
+            }
+            -> class { 'postgresql::server': }
+            HEREDOC
+          else
+            <<-HEREDOC
+            class { 'postgresql::server':
+            }
+            HEREDOC
+          end
         end
 
         let :params do
