@@ -12,17 +12,25 @@ if $facts['os']['family'] == 'RedHat' {
   # TODO: backport to litmusimage, required for serverspec port tests
   package { 'iproute': ensure => installed }
 
-  # TODO: rework this hack, maybe not needed for newer version of postgresl module?
+  # EL 8 and 9 ship a built-in DNF module for postgresql that must be disabled
+  # before installing from the upstream PGDG repo. EL 10 dropped the module stream.
   if versioncmp($facts['os']['release']['major'], '8') >= 0 {
-    package { 'disable-builtin-dnf-postgresql-module':
-      ensure   => 'disabled',
-      name     => 'postgresql',
-      provider => 'dnfmodule',
-    }
+    if versioncmp($facts['os']['release']['major'], '10') < 0 {
+      # EL 8 and 9
+      package { 'disable-builtin-dnf-postgresql-module':
+        ensure   => 'disabled',
+        name     => 'postgresql',
+        provider => 'dnfmodule',
+      }
 
-    Yumrepo <| tag == 'postgresql::repo' |>
-    -> Package['disable-dnf-postgresql-module']
-    -> Package <| tag == 'postgresql' |>
+      Yumrepo <| tag == 'postgresql::repo' |>
+      -> Package['disable-builtin-dnf-postgresql-module']
+      -> Package <| tag == 'postgresql' |>
+    } else {
+      # EL 10
+      Yumrepo <| tag == 'postgresql::repo' |>
+      -> Package <| tag == 'postgresql' |>
+    }
   }
 }
 

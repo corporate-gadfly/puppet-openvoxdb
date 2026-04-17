@@ -1,0 +1,3 @@
+---
+# As of v10.6.1, puppetlabs/postgresql does not have EL10 support/data
+openvoxdb::postgres_version: '16'
